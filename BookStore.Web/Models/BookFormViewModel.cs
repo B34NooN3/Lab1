@@ -20,6 +20,7 @@ public class BookFormViewModel
     public int NumPages { get; set; } = 100;
 
     [Range(0.01, 10000, ErrorMessage = "Cena musi być dodatnia")]
+    [Display(Name = "Cena")]
     public decimal Price { get; set; }
 
     [Required, Display(Name = "Autor")]

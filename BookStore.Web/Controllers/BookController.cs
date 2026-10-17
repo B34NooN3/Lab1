@@ -67,7 +67,7 @@ public class BookController : Controller
     {
         return View();
     }
-
+    [HttpPost]
     public IActionResult Create(BookFormViewModel vm)
     {
         if (!ModelState.IsValid) return View(vm);
