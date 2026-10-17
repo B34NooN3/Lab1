@@ -56,5 +56,10 @@ public class BookController : Controller
     {
         return Json(new { status = "ok", time = DateTime.Now });
     }
+
+    public IActionResult Index()
+    {
+        return View(BookStoreMemory.Books);
+    }
 }
 

@@ -1,8 +1,17 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
-
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+﻿@model List<Book>
+<h2>Lista Książek</h2>
+<a asp-action="Create" class="btn btn-primary mb-3">+ Dodaj książkę</a>
+<table class="table">
+    <thead>
+        <tr><th>Tytuł</th>
+        <th>Autor</th>
+        <th>Rok</th>
+        <th>Cena</th></tr><
+    /thead>
+    <tbody>
+    @foreach (var b in Model)
+    {
+        <partial name="_BookRow" model="b" />
+    }
+    </tbody>
+</table>
