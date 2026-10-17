@@ -28,3 +28,4 @@ C:\Users\kubas\RiderProjects\BookStore.Web\BookStore.Web\obj\Debug\net8.0\refint
 C:\Users\kubas\RiderProjects\BookStore.Web\BookStore.Web\obj\Debug\net8.0\BookStore.Web.pdb
 C:\Users\kubas\RiderProjects\BookStore.Web\BookStore.Web\obj\Debug\net8.0\BookStore.Web.genruntimeconfig.cache
 C:\Users\kubas\RiderProjects\BookStore.Web\BookStore.Web\obj\Debug\net8.0\ref\BookStore.Web.dll
+C:\Users\kubas\RiderProjects\BookStore.Web\BookStore.Web\obj\Debug\net8.0\BookStore.Web.sourcelink.json
