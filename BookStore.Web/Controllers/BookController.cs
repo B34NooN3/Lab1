@@ -19,6 +19,7 @@ public class BookController : Controller
         ViewBag.Id = id;
         return View();
     }
+
 // (1) query string:  /Book/Echo?name=Ala&count=3
     public IActionResult Echo([FromQuery] string name = "nieznajomy", [FromQuery] int count = 1) =>
         Content(string.Join("\n", Enumerable.Repeat($"Cześć, {name}!", Math.Clamp(count, 1, 20))));
@@ -49,7 +50,7 @@ public class BookController : Controller
 
     public IActionResult UserAgent()
     {
-        return Content (Request.Headers.UserAgent.ToString());
+        return Content(Request.Headers.UserAgent.ToString());
     }
 
     public IActionResult Health()
@@ -61,5 +62,27 @@ public class BookController : Controller
     {
         return View(BookStoreMemory.Books);
     }
-}
 
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    public IActionResult Create(BookFormViewModel vm)
+    {
+        if (!ModelState.IsValid) return View(vm);
+        BookStoreMemory.Books.Add(new Book
+        {
+            Id = BookStoreMemory.Books.Max(b => b.Id) + 1,
+            Title = vm.Title,
+            Isbn = vm.Isbn,
+            PublicationDate = vm.PublicationDate,
+            NumPages = vm.NumPages,
+            Price = vm.Price,
+            Author = vm.Author
+        });
+
+        TempData["Success"] = $"Dodano książkę „{vm.Title}”.";
+        return RedirectToAction(nameof(Index));
+    }
+}
