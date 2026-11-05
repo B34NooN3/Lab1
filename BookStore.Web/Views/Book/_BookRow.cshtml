@@ -1,7 +1,8 @@
-﻿@model Book
+﻿@model BookStore.Web.Models.Book
+
 <tr>
     <td>@Model.Title</td>
     <td>@Model.Author</td>
-    <td>@Model.PublicationDate?.Year</td>
-    <td>@Model.Price.ToString("C")</td>
+    <td>@Model.PublicationDate?.ToString("yyyy")</td>
+    <td>@Model.Price</td>
 </tr>
