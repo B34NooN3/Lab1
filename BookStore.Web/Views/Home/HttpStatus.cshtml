@@ -1,0 +1,21 @@
+﻿@model int
+
+@{
+    ViewData["Title"] = $"Błąd {Model}";
+}
+
+<div style="text-align: center; margin-top: 50px;">
+    <h1 class="text-danger">Błąd @Model</h1>
+    
+    @if (Model == 404)
+    {
+        <h3>Niestety, nie znaleziono takiej strony.</h3>
+        <p>Upewnij się, że wpisany adres URL jest poprawny.</p>
+    }
+    else
+    {
+        <h3>Wystąpił nieoczekiwany problem z żądaniem.</h3>
+    }
+    
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-3">Powrót do strony głównej</a>
+</div>

@@ -1,12 +1,13 @@
 using System.Diagnostics;
 using System.Text;
+using BookStore.Web.Filters;
 using Microsoft.AspNetCore.Mvc;
 using BookStore.Web.Models;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace BookStore.Web.Controllers;
-
+[ServiceFilter(typeof(LogActionFilter))] 
 public class BookController : Controller
 {
     //Lab 3
