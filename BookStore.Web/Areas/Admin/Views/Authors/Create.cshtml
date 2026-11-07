@@ -1,0 +1,10 @@
+﻿<h2>Dodaj Autora</h2>
+
+<form asp-action="Create" method="post">
+    <div style="margin-bottom: 10px;">
+        <label>Imię i nazwisko:</label><br />
+        <input type="text" name="name" required style="padding:5px; width:200px;" />
+    </div>
+    <button type="submit" style="padding:5px 15px; background-color:#28a745; color:white; border:none; border-radius:4px; cursor:pointer;">Zapisz</button>
+    <a asp-action="Index" style="margin-left:10px; text-decoration:none;">Anuluj</a>
+</form>
