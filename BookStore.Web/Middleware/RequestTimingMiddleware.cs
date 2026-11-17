@@ -20,6 +20,7 @@ public class RequestTimingMiddleware
     {
         var sw = Stopwatch.StartNew();
         var n = stats.Hit();
+        stats.RecordPath(ctx.Request.Path);
 
         // nagłówki z licznikiem i czasem dodajem tuż przed odesłaniem odpowiedzi
         ctx.Response.OnStarting(() =>

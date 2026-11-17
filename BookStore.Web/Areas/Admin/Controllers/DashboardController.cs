@@ -1,12 +1,21 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BookStore.Web.Middleware;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BookStore.Web.Areas.Admin.Controllers;
 
-[Area("Admin")] // Kluczowy atrybut definiujący przynależność do obszaru
+[Area("Admin")]
 public class DashboardController : Controller
 {
+    private readonly RequestStats _stats;
+
+    public DashboardController(RequestStats stats)
+    {
+        _stats = stats;
+    }
+
     public IActionResult Index()
     {
-        return View();
+        var topPaths = _stats.GetTop5Paths();
+        return View(topPaths);
     }
 }

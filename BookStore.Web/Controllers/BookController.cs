@@ -148,4 +148,11 @@ public class BookController : Controller
 
         return Content(sb.ToString(), "text/plain; charset=utf-8");
     }
+    
+    [Route("archive/{year:int}/{month:int:range(1,12)}")]
+    public IActionResult Archive(int year, int month)
+    {
+        // Akcja ma pokazywać książki z danego roku - w ramach testu zwracamy prosty tekst
+        return Content($"Wyświetlam książki z roku: {year}");
+    }
 }

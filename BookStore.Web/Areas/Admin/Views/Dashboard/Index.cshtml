@@ -1,6 +1,16 @@
-﻿<h2>Witaj w panelu administratora!</h2>
+﻿@model Dictionary<string, long>
 
-<p>
-    Przejdź do: 
-    <a asp-area="Admin" asp-controller="Authors" asp-action="Index">Zarządzanie autorami</a>
-</p>
+<h2>Witaj w panelu administratora!</h2>
+
+<h3>Top 5 najpopularniejszych ścieżek:</h3>
+<ul>
+    @if(Model != null)
+    {
+        foreach (var path in Model)
+        {
+            <li><strong>@path.Key</strong> - @path.Value zapytań</li>
+        }
+    }
+</ul>
+
+<p>Przejdź do: <a asp-area="Admin" asp-controller="Authors" asp-action="Index">Zarządzanie autorami</a></p>
