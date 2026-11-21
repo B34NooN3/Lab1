@@ -5,4 +5,10 @@
     <td>@Model.Author</td>
     <td>@Model.PublicationDate?.ToString("yyyy")</td>
     <td>@Model.Price</td>
+    <td>
+        <a asp-action="Details" asp-route-id="@Model.Id">Szczegóły</a> |
+        <a asp-action="Edit" asp-route-id="@Model.Id">Edytuj</a> |
+        <a asp-action="Delete" asp-route-id="@Model.Id">Usuń</a>
+    </td>
 </tr>
+

@@ -68,11 +68,14 @@ public class BookController : Controller
 
     // === LAB 4: PEŁNY CRUD ===
 
-    public async Task<IActionResult> Index(int page = 1, int pageSize = 5, string? search = null)
+    public async Task<IActionResult> Index(int page = 1, int pageSize = 5, string? search = null, string? sort = null, string? dir = null)
     {
         if (page < 1) page = 1;
         ViewBag.Search = search;
-        var paged = await _books.GetPagedAsync(page, pageSize, search);
+        ViewBag.Sort = sort;
+        ViewBag.Dir = dir;
+
+        var paged = await _books.GetPagedAsync(page, pageSize, search, sort, dir);
         return View(paged);
     }
 
@@ -174,21 +177,6 @@ public class BookController : Controller
     }
 
     // === LAB 3 ===
-
-    public IActionResult ByYear(int year)
-    {
-        var books = BookStoreMemory.Books
-            .Where(b => b.PublicationDate.HasValue && b.PublicationDate.Value.Year == year)
-            .ToList();
-        return View("Index", books);
-    }
-
-    public IActionResult ByIsbn(string isbn)
-    {
-        var book = BookStoreMemory.Books.FirstOrDefault(b => b.Isbn == isbn);
-        if (book == null) return NotFound();
-        return RedirectToAction("Details", new { id = book.Id });
-    }
 
     public IActionResult Docs(string path) => Content($"path = {path}");
 

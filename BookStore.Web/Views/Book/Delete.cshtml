@@ -1,0 +1,27 @@
+﻿@model BookStore.Web.Models.Book
+
+<h2>Usuń książkę</h2>
+
+<div class="alert alert-warning">
+    Czy na pewno chcesz usunąć książkę <strong>@Model.Title</strong>?
+</div>
+
+<dl class="row">
+    <dt class="col-sm-2">Tytuł</dt>
+    <dd class="col-sm-10">@Model.Title</dd>
+
+    <dt class="col-sm-2">Autor</dt>
+    <dd class="col-sm-10">@Model.Author</dd>
+
+    <dt class="col-sm-2">ISBN</dt>
+    <dd class="col-sm-10">@Model.Isbn</dd>
+
+    <dt class="col-sm-2">Cena</dt>
+    <dd class="col-sm-10">@Model.Price.ToString("C")</dd>
+</dl>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Usuń</button>
+    <a asp-action="Index" class="btn btn-secondary">Anuluj</a>
+</form>

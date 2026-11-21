@@ -4,7 +4,7 @@ namespace BookStore.Web.Services;
 
 public interface IBookService
 {
-    Task<PagedResult<Book>> GetPagedAsync(int page, int pageSize, string? search = null);
+    Task<PagedResult<Book>> GetPagedAsync(int page, int pageSize, string? search = null, string? sort = null, string? dir = null);
     Task<Book?> GetByIdAsync(int id);
     Task CreateAsync(Book book);
     Task UpdateAsync(Book book);

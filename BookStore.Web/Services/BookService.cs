@@ -13,29 +13,32 @@ public class BookService : IBookService
         _db = db;
     }
 
-    public async Task<PagedResult<Book>> GetPagedAsync(int page, int pageSize, string? search = null)
+    public async Task<PagedResult<Book>> GetPagedAsync(int page, int pageSize, string? search = null, string? sort = null, string? dir = null)
     {
         var query = _db.Books.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            query = query.Where(b => b.Title.Contains(search) || b.Author.Contains(search) || b.Isbn.Contains(search));
+            query = query.Where(b => b.Title.Contains(search) || b.Isbn.Contains(search));
         }
+
+        var desc = string.Equals(dir, "desc", StringComparison.OrdinalIgnoreCase);
+
+        query = sort?.ToLower() switch
+        {
+            "title" => desc ? query.OrderByDescending(b => b.Title) : query.OrderBy(b => b.Title),
+            "price" => desc ? query.OrderByDescending(b => (double)b.Price) : query.OrderBy(b => (double)b.Price),
+            "date"  => desc ? query.OrderByDescending(b => b.PublicationDate) : query.OrderBy(b => b.PublicationDate),
+            _       => query.OrderBy(b => b.Id)
+        };
 
         var total = await query.CountAsync();
         var items = await query
-            .OrderBy(b => b.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
-        return new PagedResult<Book>
-        {
-            Items = items,
-            Page = page,
-            PageSize = pageSize,
-            TotalCount = total
-        };
+        return new PagedResult<Book> { Items = items, Page = page, PageSize = pageSize, TotalCount = total };
     }
 
     public async Task<Book?> GetByIdAsync(int id)
