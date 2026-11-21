@@ -1,5 +1,9 @@
+using BookStore.Web.Services;
 using BookStore.Web.Filters;
 using BookStore.Web.Middleware;
+using BookStore.Web.Data;
+using Microsoft.EntityFrameworkCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,7 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews(o => o.Filters.Add<GlobalExceptionFilter>());
 builder.Services.AddScoped<LogActionFilter>();
 builder.Services.AddSingleton<RequestStats>();
+builder.Services.AddDbContext<AppDbContext>(o =>
+    o.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
+builder.Services.AddScoped<IBookService, BookService>();
 var app = builder.Build();
 app.UseMiddleware<RequestTimingMiddleware>();
 

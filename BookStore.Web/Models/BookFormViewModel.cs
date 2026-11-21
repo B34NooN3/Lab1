@@ -4,6 +4,7 @@ namespace BookStore.Web.Models;
 
 public class BookFormViewModel
 {
+    public int Id { get; set; }
     [Required(ErrorMessage = "Tytuł jest wymagany")]
     [StringLength(200, MinimumLength = 2, ErrorMessage = "Tytuł: 2–200 znaków")]
     [Display(Name = "Tytuł")]

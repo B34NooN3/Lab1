@@ -1,49 +1,56 @@
-using System.Diagnostics;
 using System.Text;
 using BookStore.Web.Filters;
-using Microsoft.AspNetCore.Mvc;
 using BookStore.Web.Models;
+using BookStore.Web.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace BookStore.Web.Controllers;
-[ServiceFilter(typeof(LogActionFilter))] 
+
+[ServiceFilter(typeof(LogActionFilter))]
 public class BookController : Controller
 {
-    //Lab 3
+    // Lab 3 + Lab 4
     private readonly IActionDescriptorCollectionProvider _provider;
+    private readonly IBookService _books;
 
-    public BookController(IActionDescriptorCollectionProvider provider)
+    public BookController(IActionDescriptorCollectionProvider provider, IBookService books)
     {
         _provider = provider;
+        _books = books;
     }
-    // GET /Book/Hello  → zwykły tekst
+
+    // GET /Book/Hello → zwykły tekst
     public IActionResult Hello() => Content("Witaj w BookStore!", "text/plain; charset=utf-8");
 
     // GET /Book/Status?code=418 → dowolny kod statusu
     public IActionResult Status(int code = 200) => StatusCode(code);
-    //Lab 3 routing
+
+    // Lab 3 routing + Lab 4 (pobieranie z bazy)
     [HttpGet("Book/Details/{id:int}")]
-    // GET /Book/Details/3 → widok
-    public IActionResult Details(int id)
+    public async Task<IActionResult> Details(int id)
     {
-        ViewBag.Id = id;
-        return View();
+        var book = await _books.GetByIdAsync(id);
+        if (book == null)
+            return NotFound();
+
+        return View(book);
     }
 
-// (1) query string:  /Book/Echo?name=Ala&count=3
+    // (1) query string: /Book/Echo?name=Ala&count=3
     public IActionResult Echo([FromQuery] string name = "nieznajomy", [FromQuery] int count = 1) =>
         Content(string.Join("\n", Enumerable.Repeat($"Cześć, {name}!", Math.Clamp(count, 1, 20))));
 
-// (2) zmienna ścieżki:  /Book/Square/7   (segment {id} z domyślnej trasy)
+    // (2) zmienna ścieżki: /Book/Square/7
     public IActionResult Square(int id) => Content($"{id}^2 = {id * id}");
 
-// (3) ciało żądania JSON:  POST /Book/Import
+    // (3) ciało żądania JSON: POST /Book/Import
     [HttpPost]
     public IActionResult Import([FromBody] BookDto dto) =>
         Json(new { received = dto.Title, dto.Isbn, dto.Price });
 
-// (4) surowy obiekt Request
+    // (4) surowy obiekt Request
     public IActionResult Inspect()
     {
         var sb = new StringBuilder();
@@ -53,75 +60,138 @@ public class BookController : Controller
         return Content(sb.ToString(), "text/plain; charset=utf-8");
     }
 
-    public IActionResult Sum(int a, int b)
-    {
-        int wynik = a + b;
-        return Content(wynik.ToString());
-    }
+    public IActionResult Sum(int a, int b) => Content((a + b).ToString());
 
-    public IActionResult UserAgent()
-    {
-        return Content(Request.Headers.UserAgent.ToString());
-    }
+    public IActionResult UserAgent() => Content(Request.Headers.UserAgent.ToString());
 
-    public IActionResult Health()
-    {
-        return Json(new { status = "ok", time = DateTime.Now });
-    }
+    public IActionResult Health() => Json(new { status = "ok", time = DateTime.Now });
 
-    public IActionResult Index()
+    // === LAB 4: PEŁNY CRUD ===
+
+    public async Task<IActionResult> Index(int page = 1, int pageSize = 5, string? search = null)
     {
-        return View(BookStoreMemory.Books);
+        if (page < 1) page = 1;
+        ViewBag.Search = search;
+        var paged = await _books.GetPagedAsync(page, pageSize, search);
+        return View(paged);
     }
 
     public IActionResult Create()
     {
-        return View();
+        return View(new BookFormViewModel());
     }
+
     [HttpPost]
-    public IActionResult Create(BookFormViewModel vm)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(BookFormViewModel vm)
     {
-        if (!ModelState.IsValid) return View(vm);
-        BookStoreMemory.Books.Add(new Book
+        if (await _books.IsbnExistsAsync(vm.Isbn))
+            ModelState.AddModelError(nameof(vm.Isbn), "Książka z takim numerem ISBN już istnieje.");
+
+        if (!ModelState.IsValid)
+            return View(vm);
+
+        var book = new Book
         {
-            Id = BookStoreMemory.Books.Max(b => b.Id) + 1,
             Title = vm.Title,
             Isbn = vm.Isbn,
             PublicationDate = vm.PublicationDate,
             NumPages = vm.NumPages,
             Price = vm.Price,
             Author = vm.Author
-        });
+        };
 
+        await _books.CreateAsync(book);
         TempData["Success"] = $"Dodano książkę „{vm.Title}”.";
         return RedirectToAction(nameof(Index));
     }
-    //Lab 3
+
+    public async Task<IActionResult> Edit(int id)
+    {
+        var book = await _books.GetByIdAsync(id);
+        if (book == null)
+            return NotFound();
+
+        var vm = new BookFormViewModel
+        {
+            Id = book.Id,
+            Title = book.Title,
+            Isbn = book.Isbn,
+            PublicationDate = book.PublicationDate,
+            NumPages = book.NumPages,
+            Price = book.Price,
+            Author = book.Author
+        };
+
+        return View(vm);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, BookFormViewModel vm)
+    {
+        if (id != vm.Id)
+            return BadRequest();
+
+        if (await _books.IsbnExistsAsync(vm.Isbn, id))
+            ModelState.AddModelError(nameof(vm.Isbn), "Inna książka ma już ten numer ISBN.");
+
+        if (!ModelState.IsValid)
+            return View(vm);
+
+        var book = new Book
+        {
+            Id = vm.Id,
+            Title = vm.Title,
+            Isbn = vm.Isbn,
+            PublicationDate = vm.PublicationDate,
+            NumPages = vm.NumPages,
+            Price = vm.Price,
+            Author = vm.Author
+        };
+
+        await _books.UpdateAsync(book);
+        TempData["Success"] = $"Zaktualizowano książkę „{vm.Title}”.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    public async Task<IActionResult> Delete(int id)
+    {
+        var book = await _books.GetByIdAsync(id);
+        if (book == null)
+            return NotFound();
+
+        return View(book);
+    }
+
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        await _books.DeleteAsync(id);
+        TempData["Success"] = "Usunięto książkę.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    // === LAB 3 ===
+
     public IActionResult ByYear(int year)
     {
-        // Filtruje książki, których data wydania (PublicationDate) zgadza się z podanym rokiem
-        var books = BookStoreMemory.Books.Where(b => b.PublicationDate.HasValue && b.PublicationDate.Value.Year == year).ToList();
-    
-        // Zwraca przefiltrowaną listę korzystając z istniejącego widoku Index
-        return View("Index", books); 
+        var books = BookStoreMemory.Books
+            .Where(b => b.PublicationDate.HasValue && b.PublicationDate.Value.Year == year)
+            .ToList();
+        return View("Index", books);
     }
 
     public IActionResult ByIsbn(string isbn)
     {
         var book = BookStoreMemory.Books.FirstOrDefault(b => b.Isbn == isbn);
+        if (book == null) return NotFound();
+        return RedirectToAction("Details", new { id = book.Id });
+    }
 
-        if (book == null)
-        {
-            return NotFound();
-        }
-        return RedirectToAction("Details", new { id = book.Id }); 
-    }
-    
-    public IActionResult Docs(string path)
-    {
-        return Content($"path = {path}");
-    }
-    
+    public IActionResult Docs(string path) => Content($"path = {path}");
+
     public IActionResult Routes()
     {
         var routes = _provider.ActionDescriptors.Items.Select(x => new
@@ -133,26 +203,22 @@ public class BookController : Controller
             HttpMethods = x.ActionConstraints?.OfType<HttpMethodActionConstraint>().FirstOrDefault()?.HttpMethods
         }).ToList();
 
-        var sb = new System.Text.StringBuilder();
+        var sb = new StringBuilder();
         sb.AppendLine("ADRES (Szablon) | KONTROLER.AKCJA | METODA HTTP");
         sb.AppendLine("-------------------------------------------------");
 
         foreach (var r in routes)
         {
-            // Pobieranie metody HTTP (np. GET, POST)
             string httpMethod = r.HttpMethods != null ? string.Join(", ", r.HttpMethods) : "Dowolna";
-        
-            // Formatowanie wiersza
             sb.AppendLine($"{r.Template ?? "Trasa konwencjonalna"} | {r.Controller}.{r.Action} | {httpMethod}");
         }
 
         return Content(sb.ToString(), "text/plain; charset=utf-8");
     }
-    
+
     [Route("archive/{year:int}/{month:int:range(1,12)}")]
     public IActionResult Archive(int year, int month)
     {
-        // Akcja ma pokazywać książki z danego roku - w ramach testu zwracamy prosty tekst
         return Content($"Wyświetlam książki z roku: {year}");
     }
 }
